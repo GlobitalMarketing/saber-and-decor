@@ -23,6 +23,8 @@ class Touch365ApiController extends Touch365ApiBaseController
     {
         $api = '/api/department';
         $response = $this->fetchData($api);
+        \Log::info("Get Departments");
+
         return $response;
     }
 
@@ -38,6 +40,8 @@ class Touch365ApiController extends Touch365ApiBaseController
         $queries = [];
         $data = [];
         $response = $this->postData($api, $queries, $data);
+        \Log::info("Post Departments");
+
         return $response;
     }
 
@@ -152,6 +156,7 @@ class Touch365ApiController extends Touch365ApiBaseController
     {
         $api = '/api/order';
         $response = $this->fetchData($api);
+        \Log::info("Get Orders:");
         return $response;
     }
 
