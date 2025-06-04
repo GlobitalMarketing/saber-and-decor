@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('code');
             $table->string('name');
             $table->foreignId('parent_id')->nullable()->constrained('departments')->onDelete('cascade');  // Self-referential foreign key
+            $table->foreignId('installation_id')->nullable()->constrained('installations')->onDelete('cascade');  // Self-referential foreign key
             $table->timestamps();
         });
     }

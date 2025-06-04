@@ -10,4 +10,4 @@ Route::get('/', function () {
 
 Route::post('wpconnector/validate-license', [LicenseController::class, 'validateLicense']);
 Route::post('wpconnector/sync-api-keys', [LicenseController::class, 'syncApiKeys']);
-Route::get('get-departments', [Touch365ApiController::class, 'getDepartment']);
+// Route::get('get-departments', [Touch365ApiController::class, 'getDepartment']);

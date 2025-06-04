@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 // Schedule the job
-Schedule::job(new CallTouch365ApiJob)->everyMinute();
+Schedule::job(new CallTouch365ApiJob())->everyMinute();
 // Schedule::call(function () {
-//     CallTouch365ApiJob::dispatch();
+//     dispatch(new CallTouch365ApiJob());
 // })->everyMinute();

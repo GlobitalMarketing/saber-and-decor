@@ -12,5 +12,9 @@ class Installation extends Model
     {
         return $this->belongsTo(License::class);
     }
+    public function departments()
+    {
+        return $this->hasMany(Department::class);
+    }
 
 }

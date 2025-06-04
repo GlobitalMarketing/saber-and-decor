@@ -1,272 +1,147 @@
 <?php
-
 namespace App\Http\Controllers\API;
 
+use App\Repositories\Departments\DepartmentRepository;
+use App\Repositories\Departments\DepartmentRepositoryInterface;
 use Exception;
 use Illuminate\Http\Request;
 use App\Services\Touch365Api;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\API\Touch365ApiBaseController;
-use GuzzleHttp\Exception\GuzzleException;
+use App\Http\Controllers\Controller;
 
-class Touch365ApiController extends Touch365ApiBaseController
+class Touch365ApiController extends Controller
 {
+    protected Touch365Api $touch365Api;
+    protected $DepartmentRepository;
 
-    /**
-     * **************** Departments ***************
-     * get the departments
-     *
-     * @return JsonResponse
-     * @throws Exception
-     */
+    public function __construct(
+        Touch365Api $touch365Api,
+        DepartmentRepositoryInterface $departmentRepositoryInterface
+    ) {
+        $this->touch365Api = $touch365Api;
+        $this->DepartmentRepository = $departmentRepositoryInterface;
+    }
+
     public function getDepartment(): JsonResponse
     {
-        $api = '/api/department';
-        $response = $this->fetchData($api);
-        \Log::info("Get Departments");
-
-        return $response;
+        \Log::info("Fetching Departments");
+        $response = $this->DepartmentRepository->departments();
+        return response()->json($response);
     }
 
-    /**
-     * post the department
-     *
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function postDepartment(): JsonResponse
+    public function postDepartment(Request $request): JsonResponse
     {
-        $api = '/api/department';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        \Log::info("Post Departments");
-
-        return $response;
+        $data = $request->all();
+        \Log::info("Posting Department", ['data' => $data]);
+        $response = $this->touch365Api->call('POST', '/api/department', [], $data);
+        return response()->json($response);
     }
 
-
-
-    /**
-     * *************** Images ***************
-     * get the image
-     * @return JsonResponse
-     * @throws Exception
-     */
     public function getImage(): JsonResponse
     {
-        $api = '/api/image';
-        $response = $this->fetchData($api);
-        return $response;
+        $response = $this->touch365Api->call('GET', '/api/image');
+        return response()->json($response);
     }
 
-    /**
-     * post the image
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function postImage(): JsonResponse
+    public function postImage(Request $request): JsonResponse
     {
-        $api = '/api/image';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('POST', '/api/image', [], $data);
+        return response()->json($response);
     }
 
-    /**
-     * delete the image
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function deleteImafe(): JsonResponse
+    public function deleteImage(Request $request): JsonResponse
     {
-        $api = '/api/image';
-        $response = $this->fetchData($api);
-        return $response;
+        $data = $request->all();
+        // Assuming your API uses POST for delete, or adjust method to DELETE if supported
+        $response = $this->touch365Api->call('DELETE', '/api/image', [], $data);
+        return response()->json($response);
     }
 
-
-
-    /**
-     * ************** Manufacturer ***************
-     * get the manufacturer
-     * @return JsonResponse
-     * @throws Exception
-     */
     public function getManufacturer(): JsonResponse
     {
-        $api = '/api/manufacturer';
-        $response = $this->fetchData($api);
-        return $response;
+        $response = $this->touch365Api->call('GET', '/api/manufacturer');
+        return response()->json($response);
     }
 
-    /**
-     * post the manufacturer
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function postManufacturer(): JsonResponse
+    public function postManufacturer(Request $request): JsonResponse
     {
-        $api = '/api/manufacturer';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('POST', '/api/manufacturer', [], $data);
+        return response()->json($response);
     }
 
-
-    /**
-     * ************* Option ***************
-     * get the option
-     * @return JsonResponse
-     * @throws Exception
-     */
     public function getOption(): JsonResponse
     {
-        $api = '/api/option';
-        $response = $this->fetchData($api);
-        return $response;
+        $response = $this->touch365Api->call('GET', '/api/option');
+        return response()->json($response);
     }
 
-    /**
-     * post the option
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function postOption(array $data): JsonResponse
+    public function postOption(Request $request): JsonResponse
     {
-        $api = '/api/option';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('POST', '/api/option', [], $data);
+        return response()->json($response);
     }
 
-
-
-
-    /**
-     * ************ Order ***************
-     * get the order
-     * @return JsonResponse
-     * @throws Exception
-     */
     public function getOrder(): JsonResponse
     {
-        $api = '/api/order';
-        $response = $this->fetchData($api);
-        \Log::info("Get Orders:");
-        return $response;
+        \Log::info("Fetching Orders");
+        $response = $this->touch365Api->call('GET', '/api/order');
+        return response()->json($response);
     }
 
-    /**
-     * update the order
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function updateOrder(): JsonResponse
+    public function updateOrder(Request $request): JsonResponse
     {
-        $api = '/api/order';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('PUT', '/api/order', [], $data);
+        return response()->json($response);
     }
 
-    /**
-     * post the order
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function postOrder(): JsonResponse
+    public function postOrder(Request $request): JsonResponse
     {
-        $api = '/api/order';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('POST', '/api/order', [], $data);
+        return response()->json($response);
     }
 
-
-
-
-    /**
-     * *********** Products ***************
-     * get the product
-     * @return JsonResponse
-     * @throws Exception
-     */
     public function getProduct(): JsonResponse
     {
-        $api = '/api/product';
-        $response = $this->fetchData($api);
-        return $response;
+        $response = $this->touch365Api->call('GET', '/api/product');
+        return response()->json($response);
     }
 
-    /**
-     * update the product
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function updateProduct(): JsonResponse
+    public function updateProduct(Request $request): JsonResponse
     {
-        $api = '/api/product';
-        $queries = [];
-        $data = [];
-        $response = $this->postData($api, $queries, $data);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('PUT', '/api/product', [], $data);
+        return response()->json($response);
     }
 
-    /**
-     * save the product
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function postProduct(): JsonResponse
+    public function postProduct(Request $request): JsonResponse
     {
-        $api = '/api/product';
-        $response = $this->fetchData($api);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('POST', '/api/product', [], $data);
+        return response()->json($response);
     }
 
-    /**
-     * delete the product
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function deleteProduct(): JsonResponse
+    public function deleteProduct(Request $request): JsonResponse
     {
-        $api = '/api/product';
-        $response = $this->fetchData($api);
-        return $response;
+        $data = $request->all();
+        $response = $this->touch365Api->call('DELETE', '/api/product', [], $data);
+        return response()->json($response);
     }
 
-    /**
-     * get the product option
-     * @return JsonResponse
-     * @throws Exception
-     */
     public function getProductOption(): JsonResponse
     {
-        $api = '/api/product/option';
-        $response = $this->fetchData($api);
-        return $response;
+        $response = $this->touch365Api->call('GET', '/api/product/option');
+        return response()->json($response);
     }
 
-    /**
-     * get the product quantity
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function
-    getProductQuantity(): JsonResponse
+    public function getProductQuantity(): JsonResponse
     {
-        $api = '/api/product/qty';
-        $response = $this->fetchData($api);
-        return $response;
+        $response = $this->touch365Api->call('GET', '/api/product/qty');
+        return response()->json($response);
     }
-
-
-
 }

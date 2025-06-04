@@ -4,9 +4,9 @@ namespace App\Services;
 
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class Touch365Api
 {
@@ -15,11 +15,12 @@ class Touch365Api
     protected string $tenant;
     protected string $url;
     protected ?string $token = null;
-    protected int $tokenExpireTime = 3600; // Token expiration time in seconds (1 hour by default)
-    public ?string $message = null;
+    protected int $tokenExpireTime = 3600; // seconds
     protected Client $client;
 
     /**
+     * Constructor: initialize client and authenticate
+     *
      * @throws Exception
      */
     public function __construct()
@@ -34,98 +35,82 @@ class Touch365Api
             'timeout' => 10.0,
         ]);
 
-        // Authenticate only if no token is cached or token is expired
-        if (!$this->getToken()) {
+        // Preload token or authenticate if none found
+        $this->token = $this->getToken();
+        if (!$this->token) {
             throw new Exception("touch365 API authentication error");
         }
     }
 
     /**
+     * Generic API call method supporting all HTTP verbs.
+     *
+     * @param string $method HTTP method ('GET', 'POST', 'PUT', 'DELETE')
+     * @param string $endpoint API endpoint (e.g., '/api/department')
+     * @param array $query Query parameters for GET/DELETE
+     * @param array $data JSON body for POST/PUT
+     * @return array|string Response decoded to array if JSON, or raw string if not JSON
      * @throws Exception
      */
-    private function handleResponseCode(int $code): void
+    public function call(string $method, string $endpoint, array $query = [], array $data = [])
     {
-        switch ($code) {
-            case 400:
-                throw new Exception("Bad Request");
-            case 401:
-                throw new Exception("Unauthorized");
-            case 403:
-                throw new Exception("Forbidden");
-            case 404:
-                throw new Exception("Not Found");
-            case 500:
-                throw new Exception("Internal Server Error");
-            default:
-                $this->message = "Status $code";
-        }
-    }
+        $method = strtoupper($method);
 
-    /**
-     * @throws GuzzleException
-     * @throws Exception
-     */
-    public function get(string $endpoint, array $queries = [])
-    {
+        $options = [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'AuthToken' => $this->getToken(),
+            ],
+            'http_errors' => false,
+            'allow_redirects' => true,
+        ];
+
+        if (in_array($method, ['GET', 'DELETE'])) {
+            if (!empty($query)) {
+                $options['query'] = $query;
+            }
+        }
+
+        if (in_array($method, ['POST', 'PUT'])) {
+            if (!empty($query)) {
+                $options['query'] = $query;
+            }
+            if (!empty($data)) {
+                $options['json'] = $data;
+            }
+        }
+
         try {
-            $response = $this->client->request('GET', $endpoint, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'AuthToken' => $this->getToken(),
-                ],
-                'query' => $queries,
-                'http_errors' => false,
-                'allow_redirects' => true,
-            ]);
+            $response = $this->client->request($method, $endpoint, $options);
 
             $this->handleResponseCode($response->getStatusCode());
 
-            return (string) $response->getBody();
+            $body = (string) $response->getBody();
 
+            // Try to decode JSON response
+            $decoded = json_decode($body, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+
+            // Return raw response if not JSON
+            return $body;
         } catch (RequestException $e) {
-            throw new Exception("GET request failed: " . $e->getMessage());
+            throw new Exception("$method request to $endpoint failed: " . $e->getMessage());
         }
     }
 
     /**
-     * @throws GuzzleException
-     * @throws Exception
-     */
-    public function post(string $endpoint, array $queries = [], array $data = []): string
-    {
-        try {
-            $response = $this->client->request('POST', $endpoint, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'AuthToken' => $this->getToken(),
-                ],
-                'query' => $queries,
-                'json' => $data,
-                'http_errors' => false,
-                'allow_redirects' => true,
-            ]);
-
-            $this->handleResponseCode($response->getStatusCode());
-
-            return (string) $response->getBody();
-        } catch (RequestException $e) {
-            throw new Exception("POST request failed: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * @throws GuzzleException
+     * Authenticate and cache token
+     *
+     * @return bool
      * @throws Exception
      */
     public function authenticate(): bool
     {
         try {
-            $url = env('TOUCH365_URL', 'https://touch365api.co.za');
-
-            $response = $this->client->request('POST', $url . '/api/auth', [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
+            $response = $this->client->request('POST', '/api/auth', [
+                'headers' => ['Content-Type' => 'application/json'],
                 'json' => [
                     'username' => $this->username,
                     'password' => $this->password,
@@ -146,10 +131,11 @@ class Touch365Api
 
             $this->token = $data->token;
 
-            // Cache the token with expiration time
+            // Cache the token for expiry period
             Cache::put('touch365_token', $this->token, $this->tokenExpireTime);
 
-            \Log::info("Token: " . $this->token);
+            \Log::info("Touch365 API authenticated; token cached.");
+
             return true;
         } catch (RequestException $e) {
             throw new Exception("Authentication failed: " . $e->getMessage());
@@ -157,23 +143,49 @@ class Touch365Api
     }
 
     /**
-     * Get the stored token from cache or authenticate if expired.
+     * Get token from cache or authenticate if missing/expired
      *
-     * @return string
+     * @return string|null
      * @throws Exception
      */
-    public function getToken(): string
+    public function getToken(): ?string
     {
-        // Check if token exists in cache and is not expired
         if (Cache::has('touch365_token')) {
+            Log::info(Cache::get('touch365_token'));
             return Cache::get('touch365_token');
         }
 
-        // If token is missing or expired, re-authenticate
-        if (!$this->authenticate()) {
-            throw new Exception("Failed to authenticate and retrieve a valid token.");
+        if ($this->authenticate()) {
+            return $this->token;
         }
 
-        return $this->token;
+        return null;
+    }
+
+    /**
+     * Handle HTTP response codes and throw exceptions for errors
+     *
+     * @param int $code
+     * @throws Exception
+     */
+    private function handleResponseCode(int $code): void
+    {
+        switch ($code) {
+            case 200:
+            case 201:
+                return; // Success
+            case 400:
+                throw new Exception("Bad Request (400)");
+            case 401:
+                throw new Exception("Unauthorized (401)");
+            case 403:
+                throw new Exception("Forbidden (403)");
+            case 404:
+                throw new Exception("Not Found (404)");
+            case 500:
+                throw new Exception("Internal Server Error (500)");
+            default:
+                throw new Exception("Unexpected HTTP status code: $code");
+        }
     }
 }
