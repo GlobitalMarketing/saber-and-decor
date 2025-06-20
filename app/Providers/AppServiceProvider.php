@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Repositories\Departments\DepartmentRepository;
 use App\Repositories\Departments\DepartmentRepositoryInterface;
+use App\Repositories\Products\ProductRepository;
+use App\Repositories\Products\ProductRepositoryInterface;
 use App\Services\Touch365Api;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
             return new Touch365Api();  // You can pass any dependencies if needed
         });
         $this->app->bind(DepartmentRepositoryInterface::class, DepartmentRepository::class);
+        $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
     }
 
     /**

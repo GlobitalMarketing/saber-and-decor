@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('installation_id')->nullable()->constrained('installations')->onDelete('cascade');  // Self-referential foreign key
             $table->string('stockcode')->unique();
             $table->string('barcode')->nullable();
             $table->string('isbn')->nullable();
