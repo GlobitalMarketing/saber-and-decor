@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
+use App\Http\Controllers\Controller;
+
 
 use App\Models\License;
 use App\Enums\LicenseStatus;
@@ -22,12 +24,12 @@ class LicenseController extends Controller
         // return $request;
         $request->validate([
             'license_key' => 'required|string',
-            'site_url'    => 'required|url',
+            // 'site_url'    => 'required|url',
         ]);
 
         // Check if the license exists
         $license = License::where('license_key', $request->license_key)
-                        ->where('site_url', $request->site_url)
+                        // ->where('site_url', $request->site_url)
                         ->first();
 
         if ($license) {
@@ -67,12 +69,12 @@ class LicenseController extends Controller
             'license_key'     => 'required|string',
             'consumer_key'    => 'required|string',
             'consumer_secret' => 'required|string',
-            'site_url'        => 'required|url',
+            // 'site_url'        => 'required|url',
         ]);
 
         // Validate the license first
         $license = License::where('license_key', $request->license_key)
-                        ->where('site_url', $request->site_url)
+                        // ->where('site_url', $request->site_url)
                         ->first();
 
         if (!$license) {
@@ -102,7 +104,7 @@ class LicenseController extends Controller
             [
                 'consumer_key'    => $request->consumer_key,
                 'consumer_secret' => $request->consumer_secret,
-                'site_url'        => $request->site_url,
+                // 'site_url'        => $request->site_url,
             ]
         );
 

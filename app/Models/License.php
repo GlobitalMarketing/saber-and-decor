@@ -23,4 +23,14 @@ class License extends Model
             'status' => LicenseStatus::class,
         ];
     }
+
+    public function installation()
+    {
+        return $this->hasOne(Installation::class);
+    }
+
+    public function activeInstallation()
+    {
+        return $this->hasOne(Installation::class)->where('status', 'active');
+    }
 }

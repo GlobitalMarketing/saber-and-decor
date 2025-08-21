@@ -1,16 +1,12 @@
 <?php
 
-use App\Jobs\CallTouch365ApiJob;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
-use App\Services\Touch365Api;
-use App\Repositories\Departments\DepartmentRepositoryInterface;
-use Illuminate\Support\Facades\App;
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
-// Schedule the job
-Schedule::job(new CallTouch365ApiJob())->everyMinute();
-// Schedule::call(function () {
-//     dispatch(new CallTouch365ApiJob());
-// })->everyMinute();
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('app:sync-touch365-departments')->daily();
+Schedule::command('app:sync-touch365-manufacturers')->daily();
+Schedule::command('app:sync-touch365-options')->daily();
+Schedule::command('app:sync-touch365-orders')->daily();
+Schedule::command('app:sync-touch365-products')->daily();
+Schedule::command('app:sync-woo-attributes')->everyTenMinutes();
+Schedule::command('app:sync-woo-products')->everyTenMinutes();
+Schedule::command('app:sync-pos-2-woo-orders')->everyTenMinutes();

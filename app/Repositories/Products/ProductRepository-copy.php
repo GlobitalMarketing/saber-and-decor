@@ -29,75 +29,27 @@ class ProductRepository implements ProductRepositoryInterface
     ) {
     }
 
-    public function storeProducts(array $productMasters, int $installation_id): void
+    public function storeProducts(array $products, int $installation_id): void
     {
         $this->loadAttributeMaps($installation_id);
 
-        foreach ($productMasters as $productMaster) {
-            $masterSku = $productMaster['STOCKCODE'] ?? null;
+        foreach ($products as $apiProduct) {
+            try {
+                $productData = $this->mapProductData($apiProduct);
+                $productData['installation_id'] = $installation_id;
 
-            if (!isset($productMaster['products']) || !is_array($productMaster['products'])) {
-                Log::warning('⚠️ Missing or invalid products array in productsmaster.', [
-                    'master_sku' => $masterSku,
+                Product::updateOrCreate(
+                    ['sku' => $productData['sku']],
+                    $productData
+                );
+
+            } catch (\Exception $e) {
+                Log::error('Failed to store product', [
+                    'sku' => $apiProduct['STOCKCODE'] ?? null,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
                 ]);
-                continue;
-            }
-
-            foreach ($productMaster['products'] as $apiProduct) {
-                try {
-
-                    // If marked as deleted, remove this variation
-                    if (($apiProduct['SYNCSTATUS'] ?? '') === 'DELETED') {
-                        $sku = trim(($apiProduct['STOCKCODE'] ?? '') . ($apiProduct['SIZECODE'] ?? '') . ($apiProduct['COLCODE'] ?? ''));
-
-                        $deleted = Product::where('sku', $sku)
-                            ->where('installation_id', $installation_id)
-                            ->delete();
-
-                        Log::info("🗑️ Deleted product variation", [
-                            'sku' => $sku,
-                            'deleted' => $deleted > 0,
-                            'installation_id' => $installation_id,
-                        ]);
-
-                        // After deleting the variation, re-activate all matching parent SKUs
-                        $parentSku = $apiProduct['STOCKCODE'] ?? null;
-
-                        Product::where('parent_sku', $parentSku)
-                            ->where('installation_id', $installation_id)
-                            ->update(['item_status' => 1, 'edited' => now()]);
-
-                        Log::info("🔁 Refreshed item_status = 1 for all matching parent_sku variations", [
-                            'parent_sku' => $parentSku,
-                            'installation_id' => $installation_id,
-                        ]);
-
-                        continue;
-                    }
-
-                    
-                    $productData = $this->mapProductData($apiProduct);
-                    $productData['installation_id'] = $installation_id;
-
-                    Product::updateOrCreate(
-                        ['sku' => $productData['sku'], 'installation_id' => $installation_id],
-                        $productData
-                    );
-
-                    Log::info('✅ Product stored/updated.', [
-                        'sku' => $productData['sku'],
-                        'installation_id' => $installation_id,
-                    ]);
-
-                } catch (\Exception $e) {
-                    Log::error('❌ Failed to store product', [
-                        'master_sku' => $masterSku,
-                        'sku'        => $apiProduct['STOCKCODE'] ?? null,
-                        'error'      => $e->getMessage(),
-                        'trace'      => $e->getTraceAsString()
-                    ]);
-                    throw $e;
-                }
+                throw $e;
             }
         }
     }
