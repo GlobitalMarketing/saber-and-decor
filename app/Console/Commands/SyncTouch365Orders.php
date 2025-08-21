@@ -33,7 +33,7 @@ class SyncTouch365Orders extends Command
         Installation::whereHas('license', function ($query) {
             $query->where('status', 'active');
         })->each(function ($installation) {
-            CallTouch365ApiJob::dispatch('/api/order', $installation->id)->onQueue('orders_'. $installation->id);
+            CallTouch365ApiJob::dispatch('/api/order', $installation->id)->onQueue('orders');
         });
 
         $this->info('Job dispatched successfully.');

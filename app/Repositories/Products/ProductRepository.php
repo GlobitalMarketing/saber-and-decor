@@ -75,7 +75,7 @@ class ProductRepository implements ProductRepositoryInterface
                         continue;
                     }
 
-                    
+
                     $productData = $this->mapProductData($apiProduct);
                     $productData['installation_id'] = $installation_id;
 
@@ -92,9 +92,9 @@ class ProductRepository implements ProductRepositoryInterface
                 } catch (\Exception $e) {
                     Log::error('❌ Failed to store product', [
                         'master_sku' => $masterSku,
-                        'sku'        => $apiProduct['STOCKCODE'] ?? null,
-                        'error'      => $e->getMessage(),
-                        'trace'      => $e->getTraceAsString()
+                        'sku' => $apiProduct['STOCKCODE'] ?? null,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
                     throw $e;
                 }
@@ -104,7 +104,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     protected function mapProductData(array $product): array
     {
-        
+
         $title = $product['DESCRIPTION1'] ?? '';
         $sku = $product['STOCKCODE'] ?? '';
         $webDescription = $product['WEBDESCRIPTION'] ?? '';
@@ -122,7 +122,7 @@ class ProductRepository implements ProductRepositoryInterface
 
         $bra = $product['MANUFACTURERCODE'] ?? '';
         $braName = $this->manufacturers[$bra] ?? null;
-        
+
         $subcat = $product['SUBDEPARTMENTCODE'] ?? '';
         $subcatName = $this->subCategories[$subcat] ?? null;
 
@@ -136,8 +136,10 @@ class ProductRepository implements ProductRepositoryInterface
             'price_including' => $product['SELLINGINCL'] ?? '0.00',
             'sale_price_excluding' => $product['PROMOSELLEXCL'] ?? '0.00',
             'sale_price_including' => $product['PROMOSELLINCL'] ?? '0.00',
-            'sale_start_date' => $this->parseDateForStorage($product['PROMOFROMDATE'] ?? null),
-            'sale_end_date' => $this->parseDateForStorage($product['PROMOTODATE'] ?? null),
+            'sale_start_date' => $product['PROMOFROMDATE'] ?? null,
+            'sale_end_date' => $product['PROMOTODATE'] ?? null,
+            // 'sale_start_date' => $this->parseDateForStorage($product['PROMOFROMDATE'] ?? null),
+            // 'sale_end_date' => $this->parseDateForStorage($product['PROMOTODATE'] ?? null),
             'category_id' => trim($cat),
             'category_name' => trim($catName ?? ''),
             'brand_id' => trim($bra),
@@ -175,7 +177,7 @@ class ProductRepository implements ProductRepositoryInterface
         $this->manufacturers = $this->manufacturerRepository->getManufacturersByInstallation($installationId);
     }
 
-    
+
 
     protected function parseDateForStorage(?string $dateString): ?string
     {
@@ -185,9 +187,20 @@ class ProductRepository implements ProductRepositoryInterface
 
         try {
             $date = Carbon::createFromFormat('d/m/Y H:i:s', $dateString);
-            $max = Carbon::parse(self::MYSQL_MAX_TIMESTAMP);
 
-            return $date->greaterThan($max) ? self::MYSQL_MAX_TIMESTAMP : $date->format('Y-m-d H:i:s');
+            // MySQL TIMESTAMP range: 1970-01-01 00:00:01 to 2038-01-19 03:14:07
+            $min = Carbon::create(1970, 1, 1, 0, 0, 1);
+            $max = Carbon::create(2038, 1, 19, 3, 14, 7);
+
+            if ($date->lessThan($min) || $date->greaterThan($max)) {
+                Log::warning('Date outside MySQL TIMESTAMP range', [
+                    'date' => $dateString,
+                    'parsed' => $date->format('Y-m-d H:i:s')
+                ]);
+                return null;
+            }
+
+            return $date->format('Y-m-d H:i:s');
         } catch (\Exception $e) {
             Log::warning('Failed to parse product date', [
                 'date' => $dateString,
@@ -197,6 +210,7 @@ class ProductRepository implements ProductRepositoryInterface
         }
     }
 
+
     public function getProducts(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $installation = Installation::where('site_url', $filters['domain'])->firstOrFail();
@@ -205,10 +219,10 @@ class ProductRepository implements ProductRepositoryInterface
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('sku', 'like', "%{$filters['search']}%")
-                  ->orWhere('title', 'like', "%{$filters['search']}%")
-                  ->orWhere('barcode', 'like', "%{$filters['search']}%")
-                  ->orWhere('description', 'like', "%{$filters['search']}%")
-                  ->orWhere('web_description', 'like', "%{$filters['search']}%");
+                    ->orWhere('title', 'like', "%{$filters['search']}%")
+                    ->orWhere('barcode', 'like', "%{$filters['search']}%")
+                    ->orWhere('description', 'like', "%{$filters['search']}%")
+                    ->orWhere('web_description', 'like', "%{$filters['search']}%");
             });
         }
 

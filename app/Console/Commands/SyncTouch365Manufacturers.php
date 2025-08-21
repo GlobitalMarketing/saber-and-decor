@@ -33,7 +33,7 @@ class SyncTouch365Manufacturers extends Command
         Installation::whereHas('license', function ($query) {
             $query->where('status', 'active');
         })->each(function ($installation) {
-            CallTouch365ApiJob::dispatch('/api/manufacturer', $installation->id)->onQueue('manufacturers_'. $installation->id);
+            CallTouch365ApiJob::dispatch('/api/manufacturer', $installation->id)->onQueue('manufacturers');
         });
 
         $this->info('Job dispatched successfully.');

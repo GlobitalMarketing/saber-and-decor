@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Installation;
 use App\Models\Product;
 use App\Repositories\Products\ProductRepositoryInterface;
 use App\Services\Touch365Api;
@@ -10,13 +11,10 @@ use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-    protected Touch365Api $touch365Api;
     protected ProductRepositoryInterface $productRepository;
     public function __construct(
-        Touch365Api $touch365Api,
         ProductRepositoryInterface $productRepository
     ) {
-        $this->touch365Api = $touch365Api;
         $this->productRepository = $productRepository;
     }
 
@@ -26,7 +24,7 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 15);
-        $filters = $request->only(['search', 'department', 'subdepartment','domain']);
+        $filters = $request->only(['search', 'department', 'subdepartment', 'domain']);
 
         $products = $this->productRepository->getProducts($perPage, $filters);
 
@@ -108,9 +106,18 @@ class ProductController extends Controller
         ]);
 
         try {
-            $this->productRepository->storeProducts($validated['productsmaster'], $request->domain);
-            $response = $this->touch365Api->call('POST', '/api/product', [], $validated);
+            // Fetch credentials from DB based on domain (adjust model/column names as needed)
+            $credentials = Installation::where('site_url', $request->domain)->firstOrFail();
 
+            // Create Touch365Api instance with DB-fetched credentials
+            $touch365Api = new Touch365Api(
+                $credentials->username,
+                $credentials->password,
+                $credentials->tenant
+            );
+
+            $this->productRepository->storeProducts($validated['productsmaster'], $request->domain);
+            $response = $touch365Api->call('POST', '/api/product', [], $validated);
             if (!$response) {
                 return response()->json([
                     'message' => 'Failed to store products in Touch365',

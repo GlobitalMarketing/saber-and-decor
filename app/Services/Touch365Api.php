@@ -31,11 +31,12 @@ class Touch365Api
         $this->username = $username;
         $this->password = $password;
         $this->tenant = $tenant;
-        $this->url = rtrim(filter_var(config('services.touch365.base_uri'), FILTER_VALIDATE_URL), '/');
+        $this->url = rtrim(filter_var("https://touch365api.co.za", FILTER_VALIDATE_URL), '/');
 
         $this->client = new Client([
             'base_uri' => $this->url,
             'timeout' => 10.0,
+            'verify' => false,
         ]);
         // Preload token or authenticate if none found
         $this->token = $this->getToken();
@@ -82,7 +83,7 @@ class Touch365Api
             }
         }
 
-        try {
+        // try {
             $response = $this->client->request($method, $endpoint, $options);
 
             $this->handleResponseCode($response->getStatusCode());
@@ -97,9 +98,9 @@ class Touch365Api
 
             // Return raw response if not JSON
             return $body;
-        } catch (RequestException $e) {
-            throw new Exception("$method request to $endpoint failed: " . $e->getMessage());
-        }
+        // } catch (RequestException $e) {
+        //     throw new Exception("$method request to $endpoint failed: " . $e->getMessage());
+        // }
     }
 
     /**
@@ -122,11 +123,11 @@ class Touch365Api
                 'http_errors' => false,
                 'allow_redirects' => true,
             ]);
-            
+
             $this->handleResponseCode($response->getStatusCode());
 
             $data = json_decode((string) $response->getBody());
-            
+
             if (!isset($data->token)) {
                 throw new Exception("Authentication token not found in response");
             }
@@ -134,7 +135,7 @@ class Touch365Api
             $this->token = $data->token;
 
             // Cache the token for expiry period
-            Cache::put('touch365_token_'.$this->tenant, $this->token, $this->tokenExpireTime);
+            Cache::put('touch365_token_' . $this->tenant, $this->token, $this->tokenExpireTime);
 
             \Log::info("Touch365 API authenticated; token cached.");
 
@@ -152,9 +153,9 @@ class Touch365Api
      */
     public function getToken(): ?string
     {
-        if (Cache::has('touch365_token_'.$this->tenant)) {
-            // Log::info(Cache::get('touch365_token_'.$this->tenant));
-            return Cache::get('touch365_token_'.$this->tenant);
+        if (Cache::has('touch365_token_' . $this->tenant)) {
+            Log::info(Cache::get('touch365_token_' . $this->tenant));
+            return Cache::get('touch365_token_' . $this->tenant);
         }
 
         if ($this->authenticate()) {

@@ -44,7 +44,7 @@ class SyncPOS2WooOrders extends Command
             }
 
             foreach ($orders as $order) {
-                InsertPosOrdersToWoo::dispatch($order)->onQueue('pos_woo_'.$installation->id);
+                InsertPosOrdersToWoo::dispatch($order)->onQueue('pos_woo');
             }
 
             $this->info("Dispatched {$orders->count()} failed orders for retry.");

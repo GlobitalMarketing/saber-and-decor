@@ -21,7 +21,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments= $this->DepartmentRepository->departments();
+        $departments = $this->DepartmentRepository->departments();
         return response()->json($departments);
     }
 
@@ -47,7 +47,7 @@ class DepartmentController extends Controller
         $subdepartments = $validated['stocksubdepartmentmaster'];
 
         // Save logic here, e.g.:
-        $this->DepartmentRepository->store($departments, $subdepartments,$request->installation_id);
+        $this->DepartmentRepository->store($departments, $subdepartments, $request->installation_id);
 
         return response()->json([
             'message' => 'Departments and Subdepartments created successfully',

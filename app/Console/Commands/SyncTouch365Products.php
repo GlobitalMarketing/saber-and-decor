@@ -38,10 +38,12 @@ class SyncTouch365Products extends Command
         })->each(function ($installation) {
             $queueName = 'products_' . $installation->id;
             $payload = [
-                'last_updated' => Carbon::now()->format('Y-m-d H:i:s')
+                'last_updated' => Carbon::now()->format('Y-m-d')
             ];
             Log::info("Dispatching CallTouch365ApiJob for installation ID: {$installation->id} on queue: {$queueName}", $payload);
-            CallTouch365ApiJob::dispatch('/api/product/option', $installation->id, $payload)->onQueue($queueName);
+            CallTouch365ApiJob::dispatch('/api/product/option', $installation->id, $payload)
+                ->onQueue('products');
+
         });
 
         $this->info('Job dispatched successfully.');
