@@ -42,8 +42,8 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'sale_start_date' => 'datetime',
-        'sale_end_date' => 'datetime',
+        // 'sale_start_date' => 'datetime',
+        // 'sale_end_date' => 'datetime',
         'edited' => 'datetime',
         'created' => 'datetime',
     ];

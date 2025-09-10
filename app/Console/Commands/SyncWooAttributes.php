@@ -34,7 +34,8 @@ class SyncWooAttributes extends Command
             $query->where('status', 'active');
         })->each(function ($installation) {
             $this->info("Syncing WooCommerce terms for Installation ID: $installation->id");
-            SyncAttributesJob::dispatch($installation->id)->onQueue('woo_attr_'. $installation->id);
+            SyncAttributesJob::dispatch($installation->id);
+            // SyncAttributesJob::dispatch($installation->id)->onQueue('woo_attr_'. $installation->id);
         });
 
         $this->info('Job dispatched successfully.');

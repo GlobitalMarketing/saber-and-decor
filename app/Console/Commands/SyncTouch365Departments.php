@@ -32,7 +32,8 @@ class SyncTouch365Departments extends Command
         Installation::whereHas('license', function ($query) {
             $query->where('status', 'active');
         })->each(function ($installation) {
-            CallTouch365ApiJob::dispatch('/api/department', $installation->id)->onQueue('departments');
+            CallTouch365ApiJob::dispatch('/api/department', $installation->id);
+            // CallTouch365ApiJob::dispatch('/api/department', $installation->id)->onQueue('departments');
         });
 
         $this->info('Job dispatched successfully.');

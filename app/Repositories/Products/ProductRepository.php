@@ -37,7 +37,7 @@ class ProductRepository implements ProductRepositoryInterface
             $masterSku = $productMaster['STOCKCODE'] ?? null;
 
             if (!isset($productMaster['products']) || !is_array($productMaster['products'])) {
-                Log::warning('⚠️ Missing or invalid products array in productsmaster.', [
+                \Log::warning('⚠️ Missing or invalid products array in productsmaster.', [
                     'master_sku' => $masterSku,
                 ]);
                 continue;
@@ -54,7 +54,7 @@ class ProductRepository implements ProductRepositoryInterface
                             ->where('installation_id', $installation_id)
                             ->delete();
 
-                        Log::info("🗑️ Deleted product variation", [
+                        \Log::info("🗑️ Deleted product variation", [
                             'sku' => $sku,
                             'deleted' => $deleted > 0,
                             'installation_id' => $installation_id,
@@ -67,7 +67,7 @@ class ProductRepository implements ProductRepositoryInterface
                             ->where('installation_id', $installation_id)
                             ->update(['item_status' => 1, 'edited' => now()]);
 
-                        Log::info("🔁 Refreshed item_status = 1 for all matching parent_sku variations", [
+                        \Log::info("🔁 Refreshed item_status = 1 for all matching parent_sku variations", [
                             'parent_sku' => $parentSku,
                             'installation_id' => $installation_id,
                         ]);
@@ -84,13 +84,13 @@ class ProductRepository implements ProductRepositoryInterface
                         $productData
                     );
 
-                    Log::info('✅ Product stored/updated.', [
+                    \Log::info('✅ Product stored/updated.', [
                         'sku' => $productData['sku'],
                         'installation_id' => $installation_id,
                     ]);
 
                 } catch (\Exception $e) {
-                    Log::error('❌ Failed to store product', [
+                    \Log::error('❌ Failed to store product', [
                         'master_sku' => $masterSku,
                         'sku' => $apiProduct['STOCKCODE'] ?? null,
                         'error' => $e->getMessage(),
@@ -136,10 +136,10 @@ class ProductRepository implements ProductRepositoryInterface
             'price_including' => $product['SELLINGINCL'] ?? '0.00',
             'sale_price_excluding' => $product['PROMOSELLEXCL'] ?? '0.00',
             'sale_price_including' => $product['PROMOSELLINCL'] ?? '0.00',
-            'sale_start_date' => $product['PROMOFROMDATE'] ?? null,
-            'sale_end_date' => $product['PROMOTODATE'] ?? null,
-            // 'sale_start_date' => $this->parseDateForStorage($product['PROMOFROMDATE'] ?? null),
-            // 'sale_end_date' => $this->parseDateForStorage($product['PROMOTODATE'] ?? null),
+            // 'sale_start_date' => $product['PROMOFROMDATE'] ?? null,
+            // 'sale_end_date' => $product['PROMOTODATE'] ?? null,
+            'sale_start_date' => $this->parseDateForStorage($product['PROMOFROMDATE'] ?? null),
+            'sale_end_date' => $this->parseDateForStorage($product['PROMOTODATE'] ?? null),
             'category_id' => trim($cat),
             'category_name' => trim($catName ?? ''),
             'brand_id' => trim($bra),
@@ -210,7 +210,6 @@ class ProductRepository implements ProductRepositoryInterface
         }
     }
 
-
     public function getProducts(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $installation = Installation::where('site_url', $filters['domain'])->firstOrFail();
@@ -260,13 +259,16 @@ class ProductRepository implements ProductRepositoryInterface
         $data = $product->toArray();
 
         if ($product->sale_start_date) {
-            $data['sale_start_date'] = Carbon::parse($product->sale_start_date)->format('d/m/Y H:i:s');
+            $data['sale_start_date'] = Carbon::parse($product->sale_start_date)
+                ->format('d/m/Y H:i:s');
         }
 
         if ($product->sale_end_date) {
-            $data['sale_end_date'] = Carbon::parse($product->sale_end_date)->format('d/m/Y H:i:s');
+            $data['sale_end_date'] = Carbon::parse($product->sale_end_date)
+                ->format('d/m/Y H:i:s');
         }
 
         return $data;
     }
+
 }

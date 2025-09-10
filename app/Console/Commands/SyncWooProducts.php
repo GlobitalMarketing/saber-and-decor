@@ -33,7 +33,8 @@ class SyncWooProducts extends Command
         Installation::whereHas('license', function ($query) {
             $query->where('status', 'active');
         })->each(function ($installation) {
-            SyncProductsJob::dispatch($installation->id)->onQueue('woo_products'. $installation->id);
+            SyncProductsJob::dispatch($installation->id);
+            // SyncProductsJob::dispatch($installation->id)->onQueue('woo_products'. $installation->id);
         });
 
         $this->info('Job dispatched successfully.');

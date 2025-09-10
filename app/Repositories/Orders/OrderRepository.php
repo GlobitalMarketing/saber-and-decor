@@ -3,37 +3,62 @@ namespace App\Repositories\Orders;
 
 use App\Models\Order;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class OrderRepository implements OrderRepositoryInterface
 {
     /**
      * Store Orders and subOrders in the database.
      *
-     * @param array $Orders
-     * @param array $subOrders
-     * @return void
+     * @param array $orders
+     * @param int $installationId
+     * @return array
      */
-    public function store(array $orders, int $installationId)
+    public function store(array $orders, int $installationId): array
     {
         $ackPayload = ['data' => []];
 
         foreach ($orders as $orderData) {
-            $order = Order::updateOrCreate(
-                ['ordernumber' => $orderData['ORDERNUMBER']],
-                $this->mapOrderData($orderData, $installationId)
-            );
-
-            $order->items()->delete();
-
-            foreach ($orderData['ORDERITEMS'] as $item) {
-                $order->items()->create($this->mapOrderItemData($item));
+            if (!isset($orderData['ORDERNUMBER'])) {
+                Log::warning('Skipping order: missing ORDERNUMBER', ['order' => $orderData]);
+                continue; // Skip this order
             }
 
-            // Append to batch acknowledgment payload
-            $ackPayload['data'][] = [
-                'ORDERNUMBER' => $orderData['ORDERNUMBER'],
-            ];
+            try {
+                $order = Order::updateOrCreate(
+                    ['ordernumber' => $orderData['ORDERNUMBER']],
+                    $this->mapOrderData($orderData, $installationId)
+                );
+
+                // Clear old items and insert new ones
+                $order->items()->delete();
+
+                if (!empty($orderData['ORDERITEMS']) && is_array($orderData['ORDERITEMS'])) {
+                    foreach ($orderData['ORDERITEMS'] as $item) {
+                        try {
+                            $order->items()->create($this->mapOrderItemData($item));
+                        } catch (\InvalidArgumentException $ex) {
+                            Log::error("Skipping invalid order item", [
+                                'error' => $ex->getMessage(),
+                                'item'  => $item,
+                                'order' => $orderData['ORDERNUMBER'],
+                            ]);
+                        }
+                    }
+                }
+
+                // Append to acknowledgment payload
+                $ackPayload['data'][] = [
+                    'ORDERNUMBER' => $orderData['ORDERNUMBER'],
+                ];
+            } catch (\Exception $e) {
+                Log::error("Failed to store order", [
+                    'error' => $e->getMessage(),
+                    'order' => $orderData
+                ]);
+            }
         }
+
         return $ackPayload;
     }
 
@@ -41,15 +66,14 @@ class OrderRepository implements OrderRepositoryInterface
      * Get paginated Orders with optional eager loaded subOrders.
      *
      * @param int $perPage
-     *
-     * @throws \Exception on DB failure
+     * @return LengthAwarePaginator
+     * @throws \Exception
      */
     public function orders(int $perPage = 15): LengthAwarePaginator
     {
         try {
             return Order::with(['installation'])->paginate($perPage);
         } catch (\Exception $e) {
-            // Log here if you want, or just rethrow
             throw new \Exception('Failed to fetch Orders: ' . $e->getMessage(), 0, $e);
         }
     }
@@ -97,10 +121,7 @@ class OrderRepository implements OrderRepositoryInterface
         $mapped = ['installation_id' => $installationId, 'is_imported' => 0];
 
         foreach ($map as $localKey => $apiKey) {
-            if (!array_key_exists($apiKey, $data)) {
-                throw new \InvalidArgumentException("Missing expected key in API response: {$apiKey}");
-            }
-            $mapped[$localKey] = $data[$apiKey];
+            $mapped[$localKey] = $data[$apiKey] ?? null; // Safe access
         }
 
         return $mapped;
@@ -122,10 +143,7 @@ class OrderRepository implements OrderRepositoryInterface
         $mapped = [];
 
         foreach ($map as $localKey => $apiKey) {
-            if (!array_key_exists($apiKey, $item)) {
-                throw new \InvalidArgumentException("Missing expected key in ORDERITEM: {$apiKey}");
-            }
-            $mapped[$localKey] = $item[$apiKey];
+            $mapped[$localKey] = $item[$apiKey] ?? null; // Safe access
         }
 
         return $mapped;
