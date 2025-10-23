@@ -23,7 +23,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 15);
+        $perPage = $request->input('per_page', 100);
         $filters = $request->only(['search', 'department', 'subdepartment', 'domain']);
 
         $products = $this->productRepository->getProducts($perPage, $filters);

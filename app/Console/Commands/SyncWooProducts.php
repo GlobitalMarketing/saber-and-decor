@@ -28,7 +28,7 @@ class SyncWooProducts extends Command
     public function handle()
     {
         $this->info('Dispatching SyncWooProducts...');
-        
+
         // Dispatch the job (queued version)
         Installation::whereHas('license', function ($query) {
             $query->where('status', 'active');
@@ -37,6 +37,7 @@ class SyncWooProducts extends Command
             // SyncProductsJob::dispatch($installation->id)->onQueue('woo_products'. $installation->id);
         });
 
+        
         $this->info('Job dispatched successfully.');
     }
 }

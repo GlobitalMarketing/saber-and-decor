@@ -17,7 +17,7 @@ Route::get('/user', function (Request $request) {
 Route::post('wpconnector/validate-license', [LicenseController::class, 'validateLicense']);
 Route::post('wpconnector/sync-api-keys', [LicenseController::class, 'syncApiKeys']);
 // Route::get('get-departments', [Touch365ApiController::class, 'getDepartment']);
-Route::post('/webhooks/order-sync/{licenseKey}', [WooOrderWebhookController::class,'resolveInstallation']);
+Route::post('/webhooks/order-sync/{licenseKey}', [WooOrderWebhookController::class,'receiveWebhook']);
 
 // Local Department Management
 Route::prefix('departments')->group(function () {
