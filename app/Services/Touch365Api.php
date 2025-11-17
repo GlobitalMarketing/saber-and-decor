@@ -61,11 +61,10 @@ class Touch365Api
 
         $options = [
             'headers' => [
+                'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'AuthToken' => $this->getToken(),
-            ],
-            'http_errors' => false,
-            'allow_redirects' => true,
+            ]
         ];
 
         if (in_array($method, ['GET', 'DELETE'])) {
@@ -74,34 +73,48 @@ class Touch365Api
             }
         }
 
-        if (in_array($method, ['POST', 'PUT'])) {
+        if (in_array($method, ['POST'])) {
+            try {
+                $response = $this->client->post($endpoint, [
+                    'headers' => [
+                        'AuthToken' => $this->getToken(),
+                        'Content-Type' => 'application/json',
+                    ],
+                    'json' => $data
+                ]);
+
+                $body = $response->getBody();
+                $data = json_decode($body, true);
+
+                Log::info('Touch365 API Response:', $data);
+                return $data;
+
+            } catch (\Exception $e) {
+                Log::error('Touch365 API Error: ' . $e->getMessage());
+            }
+
+        }
+        if (in_array($method, ['PUT'])) {
             if (!empty($query)) {
                 $options['query'] = $query;
             }
             if (!empty($data)) {
-                $options['json'] = $data;
+                $options = $data; // ✅ correct way
             }
         }
 
-        // try {
-            $response = $this->client->request($method, $endpoint, $options);
+        Log::info("Request Options:", $options);
 
-            $this->handleResponseCode($response->getStatusCode());
+        $response = $this->client->request($method, $endpoint, $options);
 
-            $body = (string) $response->getBody();
+        $this->handleResponseCode($response->getStatusCode());
 
-            // Try to decode JSON response
-            $decoded = json_decode($body, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return $decoded;
-            }
+        $body = (string) $response->getBody();
 
-            // Return raw response if not JSON
-            return $body;
-        // } catch (RequestException $e) {
-        //     throw new Exception("$method request to $endpoint failed: " . $e->getMessage());
-        // }
+        $decoded = json_decode($body, true);
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : $body;
     }
+
 
     /**
      * Authenticate and cache token
