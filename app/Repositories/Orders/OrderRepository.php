@@ -20,7 +20,7 @@ class OrderRepository implements OrderRepositoryInterface
 
         foreach ($orders as $orderData) {
             if (!isset($orderData['ORDERNUMBER'])) {
-                Log::warning('Skipping order: missing ORDERNUMBER', ['order' => $orderData]);
+                //Log::warning('Skipping order: missing ORDERNUMBER', ['order' => $orderData]);
                 continue; // Skip this order
             }
 

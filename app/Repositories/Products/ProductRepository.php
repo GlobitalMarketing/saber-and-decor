@@ -58,11 +58,11 @@ class ProductRepository implements ProductRepositoryInterface
                             ->where('installation_id', $installation_id)
                             ->delete();
 
-                        \Log::info("🗑️ Deleted product variation", [
-                            'sku' => $sku,
-                            'deleted' => $deleted > 0,
-                            'installation_id' => $installation_id,
-                        ]);
+                        // \Log::info("🗑️ Deleted product variation", [
+                        //     'sku' => $sku,
+                        //     'deleted' => $deleted > 0,
+                        //     'installation_id' => $installation_id,
+                        // ]);
 
                         // After deleting the variation, re-activate all matching parent SKUs
                         $parentSku = $apiProduct['STOCKCODE'] ?? null;
@@ -71,10 +71,10 @@ class ProductRepository implements ProductRepositoryInterface
                             ->where('installation_id', $installation_id)
                             ->update(['item_status' => 1, 'edited' => now()]);
 
-                        \Log::info("🔁 Refreshed item_status = 1 for all matching parent_sku variations", [
-                            'parent_sku' => $parentSku,
-                            'installation_id' => $installation_id,
-                        ]);
+                        // \Log::info("🔁 Refreshed item_status = 1 for all matching parent_sku variations", [
+                        //     'parent_sku' => $parentSku,
+                        //     'installation_id' => $installation_id,
+                        // ]);
 
                         continue;
                     }
@@ -88,18 +88,18 @@ class ProductRepository implements ProductRepositoryInterface
                         $productData
                     );
 
-                    \Log::info('✅ Product stored/updated.', [
-                        'sku' => $productData['sku'],
-                        'installation_id' => $installation_id,
-                    ]);
+                    // \Log::info('✅ Product stored/updated.', [
+                    //     'sku' => $productData['sku'],
+                    //     'installation_id' => $installation_id,
+                    // ]);
 
                 } catch (\Exception $e) {
-                    \Log::error('❌ Failed to store product', [
-                        'master_sku' => $masterSku,
-                        'sku' => $apiProduct['STOCKCODE'] ?? null,
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
-                    ]);
+                    // \Log::error('❌ Failed to store product', [
+                    //     'master_sku' => $masterSku,
+                    //     'sku' => $apiProduct['STOCKCODE'] ?? null,
+                    //     'error' => $e->getMessage(),
+                    //     'trace' => $e->getTraceAsString()
+                    // ]);
                     throw $e;
                 }
             }
@@ -197,19 +197,19 @@ class ProductRepository implements ProductRepositoryInterface
             $max = Carbon::create(2038, 1, 19, 3, 14, 7);
 
             if ($date->lessThan($min) || $date->greaterThan($max)) {
-                Log::warning('Date outside MySQL TIMESTAMP range', [
-                    'date' => $dateString,
-                    'parsed' => $date->format('Y-m-d H:i:s')
-                ]);
+            // Log::warning('Date outside MySQL TIMESTAMP range', [
+            //         'date' => $dateString,
+            //         'parsed' => $date->format('Y-m-d H:i:s')
+            //     ]);
                 return null;
             }
 
             return $date->format('Y-m-d H:i:s');
         } catch (\Exception $e) {
-            Log::warning('Failed to parse product date', [
-                'date' => $dateString,
-                'error' => $e->getMessage(),
-            ]);
+            // Log::warning('Failed to parse product date', [
+            //     'date' => $dateString,
+            //     'error' => $e->getMessage(),
+            // ]);
             return null;
         }
     }

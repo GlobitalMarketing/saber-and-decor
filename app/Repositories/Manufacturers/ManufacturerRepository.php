@@ -17,7 +17,7 @@ class ManufacturerRepository implements ManufacturerRepositoryInterface
      * @return void
      */
     public function store(array $manufacturers, int $installationId)
-    {        
+    {
         foreach ($manufacturers as $manufecturer) {
             $existing = Manufacturer::where('code', $manufecturer['MANUFACTURERCODE'])->first();
 
@@ -28,8 +28,8 @@ class ManufacturerRepository implements ManufacturerRepositoryInterface
                     'installation_id' => $installationId
                 ]
             );
-            
-            
+
+
             $this->logManufacturerChange(
                 $existing ? [$existing->only(['code', 'name'])] : [],
                 [

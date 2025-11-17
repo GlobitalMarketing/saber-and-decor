@@ -17,7 +17,7 @@ class OptionRepository implements OptionRepositoryInterface
      * @return void
      */
     public function store(array $options, $type, int $installationId)
-    {        
+    {
         foreach ($options as $option) {
             $existing = Option::where('code', $option['OPTIONCODE'])->where('type', $type)->first();
 
@@ -29,8 +29,8 @@ class OptionRepository implements OptionRepositoryInterface
                     'installation_id' => $installationId
                 ]
             );
-            
-            
+
+
             $this->logoptionChange(
                 $existing ? [$existing->only(['code', 'name', 'type'])] : [],
                 [

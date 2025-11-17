@@ -53,6 +53,7 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+    'image_source_url' => env('IMAGE_SOURCE_URL', 'https://cdn.example.com/images'),
 
     /*
     |--------------------------------------------------------------------------

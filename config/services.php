@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'touch365' => [
+        'base_uri' => env('TOUCH365_BASE_URL', 'https://touch365api.co.za'),
+    ],
+
 ];

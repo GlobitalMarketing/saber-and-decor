@@ -86,11 +86,11 @@ class Touch365Api
                 $body = $response->getBody();
                 $data = json_decode($body, true);
 
-                Log::info('Touch365 API Response:', $data);
+                //Log::info('Touch365 API Response:', $data);
                 return $data;
 
             } catch (\Exception $e) {
-                Log::error('Touch365 API Error: ' . $e->getMessage());
+                //Log::error('Touch365 API Error: ' . $e->getMessage());
             }
 
         }
@@ -103,7 +103,7 @@ class Touch365Api
             }
         }
 
-        Log::info("Request Options:", $options);
+        //Log::info("Request Options:", $options);
 
         $response = $this->client->request($method, $endpoint, $options);
 
@@ -150,7 +150,7 @@ class Touch365Api
             // Cache the token for expiry period
             Cache::put('touch365_token_' . $this->tenant, $this->token, $this->tokenExpireTime);
 
-            \Log::info("Touch365 API authenticated; token cached.");
+            Log::info("Touch365 API authenticated; token cached.");
 
             return true;
         } catch (RequestException $e) {
@@ -167,7 +167,7 @@ class Touch365Api
     public function getToken(): ?string
     {
         if (Cache::has('touch365_token_' . $this->tenant)) {
-            Log::info(Cache::get('touch365_token_' . $this->tenant));
+            //Log::info(Cache::get('touch365_token_' . $this->tenant));
             return Cache::get('touch365_token_' . $this->tenant);
         }
 

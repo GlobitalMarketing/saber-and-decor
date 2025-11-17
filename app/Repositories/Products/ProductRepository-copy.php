@@ -56,7 +56,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     protected function mapProductData(array $product): array
     {
-        
+
         $title = $product['DESCRIPTION1'] ?? '';
         $sku = $product['STOCKCODE'] ?? '';
         $webDescription = $product['WEBDESCRIPTION'] ?? '';
@@ -74,7 +74,7 @@ class ProductRepository implements ProductRepositoryInterface
 
         $bra = $product['MANUFACTURERCODE'] ?? '';
         $braName = $this->manufacturers[$bra] ?? null;
-        
+
         $subcat = $product['SUBDEPARTMENTCODE'] ?? '';
         $subcatName = $this->subCategories[$subcat] ?? null;
 
@@ -127,7 +127,7 @@ class ProductRepository implements ProductRepositoryInterface
         $this->manufacturers = $this->manufacturerRepository->getManufacturersByInstallation($installationId);
     }
 
-    
+
 
     protected function parseDateForStorage(?string $dateString): ?string
     {

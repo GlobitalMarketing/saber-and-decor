@@ -36,7 +36,7 @@ class WooOrderWebhookController extends Controller
             'order_id' => $order['id'] ?? null
         ]);
         // } catch (\Throwable $e) {
-        //     Log::error('❌ Order sync failed at webhook.', [
+        //     //Log::error('❌ Order sync failed at webhook.', [
         //         'license_key' => $licenseKey,
         //         'error' => $e->getMessage(),
         //         'trace' => $e->getTraceAsString(),

@@ -30,7 +30,7 @@ class SyncTouch365Products extends Command
     public function handle()
     {
         $this->info('Dispatching SyncTouch365Products...');
-        Log::info('SyncTouch365Products command started.');
+        //Log::info('SyncTouch365Products command started.');
 
         // Dispatch the job (queued version)
         Installation::whereHas('license', function ($query) {
@@ -39,7 +39,7 @@ class SyncTouch365Products extends Command
             $payload = [
                 'last_updated' => Carbon::now()->format('Y')
             ];
-            Log::info("Dispatching CallTouch365ApiJob for installation ID: {$installation->id}", $payload);
+            //Log::info("Dispatching CallTouch365ApiJob for installation ID: {$installation->id}", $payload);
             CallTouch365ApiJob::dispatch('/api/product/option', $installation->id, $payload);
             // CallTouch365ApiJob::dispatch('/api/product/option', $installation->id, $payload)
             //     ->onQueue('products');
@@ -47,6 +47,6 @@ class SyncTouch365Products extends Command
         });
 
         $this->info('Job dispatched successfully.');
-        Log::info('SyncTouch365Products command finished.');
+        //Log::info('SyncTouch365Products command finished.');
     }
 }

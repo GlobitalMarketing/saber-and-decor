@@ -29,7 +29,7 @@
 
 //     public function getDepartment(): JsonResponse
 //     {
-//         \Log::info("Fetching Departments");
+//         \//Log::info("Fetching Departments");
 //         $response = $this->DepartmentRepository->departments();
 //         return response()->json($response);
 //     }
@@ -37,7 +37,7 @@
 //     public function postDepartment(Request $request): JsonResponse
 //     {
 //         $data = $request->all();
-//         \Log::info("Posting Department", ['data' => $data]);
+//         \//Log::info("Posting Department", ['data' => $data]);
 //         $response = $this->touch365Api->call('POST', '/api/department', [], $data);
 //         return response()->json($response);
 //     }
@@ -91,7 +91,7 @@
 
 //     public function getOrder(): JsonResponse
 //     {
-//         \Log::info("Fetching Orders");
+//         \//Log::info("Fetching Orders");
 //         $response = $this->touch365Api->call('GET', '/api/order');
 //         return response()->json($response);
 //     }

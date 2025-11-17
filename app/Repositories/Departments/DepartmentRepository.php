@@ -25,7 +25,7 @@ class DepartmentRepository implements DepartmentRepositoryInterface
         foreach ($subdepartments as $sub) {
             $subMap[$sub['DEPARTMENTCODE']][] = $sub;
         }
-        
+
         foreach ($departments as $department) {
             $existing = Department::where('code', $department['DEPARTMENTCODE'])->first();
 
@@ -36,8 +36,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
                     'installation_id' => $installationId
                 ]
             );
-            
-            
+
+
             $this->logDepartmentChange(
                 $existing ? [$existing->only(['code', 'name'])] : [],
                 [
@@ -49,8 +49,8 @@ class DepartmentRepository implements DepartmentRepositoryInterface
                 $parentDepartment->id,
                 $installationId
             );
-            
-            
+
+
             foreach (($subMap[$department['DEPARTMENTCODE']] ?? []) as $subdepartment) {
                 $existingSub = Department::where('code', $subdepartment['SUBDEPARTMENTCODE'])->first();
 

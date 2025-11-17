@@ -33,11 +33,11 @@ class CallTouch365ApiJob implements ShouldQueue
 
     public function handle(Touch365ApiFactory $factory): void
     {
-        Log::info("CallTouch365ApiJob started for endpoint: {$this->apiEndpoint}");
+        //Log::info("CallTouch365ApiJob started for endpoint: {$this->apiEndpoint}");
         try {
             $touch365Api = $factory->fromInstallation($this->installation_id);
             $response = $touch365Api->call('GET', $this->apiEndpoint, $this->requestData);
-            Log::info("Response received for endpoint: {$this->apiEndpoint}");
+            //Log::info("Response received for endpoint: {$this->apiEndpoint}");
             // Log::info("Response received for endpoint: {$this->apiEndpoint}", ['response' => $response]);
             match ($this->apiEndpoint) {
                 '/api/department' => $this->handleDepartments($response),
@@ -48,9 +48,9 @@ class CallTouch365ApiJob implements ShouldQueue
                 default => Log::warning("No handler defined for endpoint: {$this->apiEndpoint}"),
             };
         } catch (Exception $e) {
-            Log::error("CallTouch365ApiJob failed for endpoint {$this->apiEndpoint}: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            // Log::error("CallTouch365ApiJob failed for endpoint {$this->apiEndpoint}: " . $e->getMessage(), [
+            //     'trace' => $e->getTraceAsString(),
+            // ]);
         }
     }
 
@@ -66,9 +66,9 @@ class CallTouch365ApiJob implements ShouldQueue
             $departmentRepository = app(\App\Repositories\Departments\DepartmentRepositoryInterface::class);
             $departmentRepository->store($departments, $subdepartments, $this->installation_id);
 
-            Log::info('Departments and subdepartments stored successfully.');
+            // Log::info('Departments and subdepartments stored successfully.');
         } else {
-            Log::error('Invalid department data received.');
+            // Log::error('Invalid department data received.');
         }
     }
 
@@ -80,9 +80,9 @@ class CallTouch365ApiJob implements ShouldQueue
             $manufacturerRepository = app(\App\Repositories\Manufacturers\ManufacturerRepositoryInterface::class);
             $manufacturerRepository->store($manufacturers, $this->installation_id);
 
-            Log::info('Manufacturers stored successfully.');
+            // Log::info('Manufacturers stored successfully.');
         } else {
-            Log::error('Invalid manufacturer data received.');
+            // Log::error('Invalid manufacturer data received.');
         }
     }
 
@@ -98,9 +98,9 @@ class CallTouch365ApiJob implements ShouldQueue
             }
             $optionRepository->store($mapOptions, 'size', $this->installation_id);
 
-            Log::info('sizemaster stored successfully.');
+            // Log::info('sizemaster stored successfully.');
         } else {
-            Log::error('Invalid sizemaster data received.');
+            // Log::error('Invalid sizemaster data received.');
         }
 
         if (isset($response['colourmaster'])) {
@@ -112,9 +112,9 @@ class CallTouch365ApiJob implements ShouldQueue
             }
             $optionRepository->store($mapOptions, 'colour', $this->installation_id);
 
-            Log::info('colourmaster stored successfully.');
+            // Log::info('colourmaster stored successfully.');
         } else {
-            Log::error('Invalid colourmaster data received.');
+            // Log::error('Invalid colourmaster data received.');
         }
     }
 
@@ -132,16 +132,16 @@ class CallTouch365ApiJob implements ShouldQueue
 
             try {
                 $api->call('PUT', '/api/order', [], $ackPayload);
-                \Log::info('Acknowledged orders as received');
+                // \Log::info('Acknowledged orders as received');
             } catch (\Throwable $e) {
-                \Log::error('Failed to acknowledge orders: ' . $e->getMessage(), [
-                    'payload' => $ackPayload,
-                    'trace' => $e->getTraceAsString(),
-                ]);
+                // \Log::error('Failed to acknowledge orders: ' . $e->getMessage(), [
+                //     'payload' => $ackPayload,
+                //     'trace' => $e->getTraceAsString(),
+                // ]);
             }
-            Log::info('Orders stored successfully.');
+            // Log::info('Orders stored successfully.');
         } else {
-            Log::error('Invalid orders data received.');
+            // Log::error('Invalid orders data received.');
         }
     }
 
@@ -154,9 +154,9 @@ class CallTouch365ApiJob implements ShouldQueue
             $productsRepository = app(\App\Repositories\Products\ProductRepositoryInterface::class);
             $productsRepository->storeProducts($prodcuts, $this->installation_id);
 
-            Log::info('Products stored successfully.');
+            // Log::info('Products stored successfully.');
         } else {
-            Log::error('Invalid products data received.');
+            // Log::error('Invalid products data received.');
         }
     }
 
@@ -217,10 +217,10 @@ class CallTouch365ApiJob implements ShouldQueue
                     ->first();
 
                 if (!$product) {
-                    Log::warning("❌ Product not found for order " . Arr::get($order, 'ORDERNUMBER') .
-                        ", SKU: " . Arr::get($item, 'CODE') .
-                        ", Size: " . Arr::get($item, 'SIZECODE') .
-                        ", Color: " . Arr::get($item, 'COLCODE'));
+                    // Log::warning("❌ Product not found for order " . Arr::get($order, 'ORDERNUMBER') .
+                    //     ", SKU: " . Arr::get($item, 'CODE') .
+                    //     ", Size: " . Arr::get($item, 'SIZECODE') .
+                    //     ", Color: " . Arr::get($item, 'COLCODE'));
                     continue;
                 }
 
